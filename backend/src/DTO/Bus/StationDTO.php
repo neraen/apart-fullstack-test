@@ -1,8 +1,6 @@
 <?php
 
-namespace App\DTO;
-
-use Symfony\Component\Validator\Constraints as Assert;
+namespace App\DTO\Bus;
 
 class StationDTO
 {

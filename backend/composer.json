@@ -13,6 +13,7 @@
         "symfony/cache": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
+        "symfony/filesystem": "7.2.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.2.*",
         "symfony/http-client": "7.2.*",
@@ -77,6 +78,7 @@
     },
     "require-dev": {
         "symfony/stopwatch": "7.2.*",
+        "symfony/var-dumper": "7.2.*",
         "symfony/web-profiler-bundle": "7.2.*"
     }
 }

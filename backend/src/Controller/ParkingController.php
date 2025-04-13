@@ -1,40 +1,36 @@
 <?php
 
 namespace App\Controller;
+use App\DTO\Request\PaginatedRequestDTO;
+use App\Service\ParkingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
+use Symfony\Component\Routing\Attribute\Route;
+
+
 class ParkingController extends AbstractController
 {
-    /**
-     * @throws InvalidArgumentException
-     */
-    #[Route('/bus/lines', name: 'bus_lines')]
-    public function getLines(CacheInterface $cache){
+    public function __construct(private ParkingService $parkingService)
+    {
+    }
 
-        $cacheKey = 'bus_lines_v1';
 
-        $lines = $cache->get($cacheKey, function (ItemInterface $item) {
-            $item->expiresAfter(3600);
+    #[Route('/parkings', name: 'parkings', methods: ['GET'])]
+    public function getParkings(#[MapQueryString] PaginatedRequestDTO $request){
+        $page = max(1, $request->getPage());
+        $limit = max(1, $request->getLimit());
+        $offset = ($page - 1) * $limit;
+        $stations = $this->parkingService->getAllParkings();
+        $total = count($stations);
+        $items = array_slice($stations, $offset, $limit);
 
-            $filePath = "https://web.vdl.lu/autobus/data/messages/Bus_Network.json";
-            $json = file_get_contents($filePath);
-            $json = preg_replace('/^\xEF\xBB\xBF/', '', $json);
-
-            try {
-                /** @var TransportNetworkDTO $dto */
-                $dto = $this->serializer->deserialize($json, TransportNetworkDTO::class, 'json');
-
-                return array_map(function (LineDTO $line) {
-                    return [
-                        'name' => $line->getName(),
-                        'image' => $line->getPictureUrl(),
-                    ];
-                }, $dto->getLines());
-            } catch (\Exception $e) {
-                throw new \RuntimeException('Erreur de désérialisation : ' . $e->getMessage(), 0, $e);
-            }
-        });
-
-        return $this->json($lines);
+        return $this->json([
+            'items' => $items,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'hasMore' => ($offset + $limit) < $total,
+        ], Response::HTTP_OK);
     }
 }
